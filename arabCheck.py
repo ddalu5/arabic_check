@@ -145,7 +145,7 @@ if __name__ == '__main__':
     arnospace_filepath = os.path.join(local_dir, ARNOSPACE_FILENAME)
     arok_filepath = os.path.join(local_dir, AROK_FILENAME)
     arnotok_end_filepath = os.path.join(local_dir, ARNOTOK_END_FILENAME)
-    sub_filepath = 'test.txt'
+    sub_filepath = sys.argv[1]
     arok_chars = load_arabic_chars(arok_filepath)
     arnospace_chars = load_arabic_chars(arnospace_filepath)
     arnotok_end_words = load_ar_not_end(arnotok_end_filepath)
