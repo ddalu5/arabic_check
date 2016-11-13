@@ -156,6 +156,10 @@ if __name__ == '__main__':
         for line in elements[item]['lines']:
             if filter_line(item, line, arok_chars, arnospace_chars):
                 contain_errors = True
+            if u' و ' in line:
+                print("Subtitle number "+item)
+                print("error > " + line)
+                print("Arabic \""+u' و '+"\" char with two spaces\n")
             if len(line.strip()) > MAX_CHAR_PERLINE:
                 print("Subtitle number "+item)
                 print("error > " + line)
@@ -193,7 +197,7 @@ if __name__ == '__main__':
                 contain_errors = True
             if not start_with(elements[item]['lines'][0], u'-') \
                     and not start_with(elements[item]['lines'][1], u'-') \
-                    and len(elements[item]['lines'][0]+elements[item]['lines'][1]) <= MAX_CHAR_PERLINE:
+                    and len(elements[item]['lines'][0]+elements[item]['lines'][1]) < MAX_CHAR_PERLINE:
                 print("Subtitle number "+item)
                 print("Lines don't start with - and both less than MAX chars "
                       "("+str(MAX_CHAR_PERLINE)+")\n")
