@@ -197,3 +197,6 @@ if __name__ == '__main__':
                 print("Subtitle number "+item)
                 print("Lines don't start with - and both less than MAX chars "
                       "("+str(MAX_CHAR_PERLINE)+")\n")
+
+    if not contain_errors:
+        print "All is Good!"
