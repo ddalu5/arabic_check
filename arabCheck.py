@@ -4,6 +4,8 @@
 import sys, os, re
 from io import open
 
+
+REPORT_FILENAME = 'report.txt'
 AROK_FILENAME = 'NF_AR_ok_letters.txt'
 ARNOTOK_END_FILENAME = 'AR_WORDS_nottoendwith.txt'
 ARNOSPACE_FILENAME = 'AR_NOSPACE_letters.txt'
@@ -16,6 +18,7 @@ META_EXTRACTION_PATTERN = (r''
 
 ASCII_OK = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '(', ')', '"', '.', ':',
             '-', ' ', '!', '/', '\\', '\u2010']
+
 
 TWOCHARS_FILTER = (
     ('0644', '0654', 'Wrong LAM'),
@@ -33,6 +36,13 @@ ASCII_OK_TWOCHARS_FILTER = (
 )
 
 MAX_CHAR_PERLINE = 42
+
+
+def print_error(error, report_filepath=REPORT_FILENAME):
+    print(error)
+    f = open(report_filepath, 'a')
+    f.write(unicode(error)+"\n")
+    f.close()
 
 
 class TextSubFileWrapper:
@@ -80,29 +90,30 @@ def filter_line(element_id, row, ar_ok, ar_nospace):
         singlecharcode = singlechar.encode("unicode_escape")
         if singlecharcode.strip('\u').strip(' ') not in ar_ok:
             if singlecharcode not in ASCII_OK:
-                print("Subtitle number "+element_id)
-                print("error > " + row)
-                print('  ' + singlechar + ' [ ' + singlecharcode + ' ]\n')
+                print_error("Subtitle number "+element_id)
+                print_error("error > " + row)
+                print_error('  ' + singlechar + ' [ ' + singlecharcode + ' ]\n')
                 has_errors = True
             else:
                 for f_lastchar, f_actchar, f_message in ASCII_OK_TWOCHARS_FILTER:
                     if singlecharcode.strip('\u').strip(' ') == f_actchar and lastchar == f_lastchar:
-                        print("Subtitle number "+element_id)
-                        print("error > " + row)
-                        print(f_message+"\n")
+                        print_error("Subtitle number "+element_id)
+                        print_error("error > " + row)
+                        print_error(f_message+"\n")
                         has_errors = True
         else:
             for f_lastchar, f_actchar, f_message in TWOCHARS_FILTER:
                 if singlecharcode.strip('\u').strip(' ') == f_actchar and lastchar == f_lastchar:
-                    print("Subtitle number "+element_id)
-                    print("error > " + row)
-                    print(f_message+"\n")
+                    print_error("Subtitle number "+element_id)
+                    print_error("error > " + row)
+                    print_error(f_message+"\n")
                     has_errors = True
             for nospace_char in ar_nospace:
                 if singlecharcode.strip('\u').strip(' ') == '' and lastchar == nospace_char:
-                    print("Subtitle number "+element_id)
-                    print("error > " + row)
-                    print("There is a space after a non-space arabic char\n")
+                    print_error("Subtitle number "+element_id)
+                    print_error("error > " + row)
+                    print_error("There is a space after a non-space arabic char\n")
+                    has_errors = True
         lastchar = singlecharcode.strip('\u').strip(' ')
     return has_errors
 
@@ -141,6 +152,8 @@ def start_with(row, chars):
     return False
 
 if __name__ == '__main__':
+    if os.path.isfile(REPORT_FILENAME):
+        os.remove(REPORT_FILENAME)
     local_dir = os.path.dirname(os.path.realpath(__file__))
     arnospace_filepath = os.path.join(local_dir, ARNOSPACE_FILENAME)
     arok_filepath = os.path.join(local_dir, AROK_FILENAME)
@@ -157,50 +170,51 @@ if __name__ == '__main__':
             if filter_line(item, line, arok_chars, arnospace_chars):
                 contain_errors = True
             if u' و ' in line:
-                print("Subtitle number "+item)
-                print("error > " + line)
-                print("Arabic \""+u' و '+"\" char with two spaces\n")
+                print_error("Subtitle number "+item)
+                print_error("error > " + line)
+                print_error("Arabic \""+u' و '+"\" char with two spaces\n")
+                contain_errors = True
             if len(line.strip()) > MAX_CHAR_PERLINE:
-                print("Subtitle number "+item)
-                print("error > " + line)
-                print("MAX chars ("+str(MAX_CHAR_PERLINE)+") per line exceeded\n")
+                print_error("Subtitle number "+item)
+                print_error("error > " + line)
+                print_error("MAX chars ("+str(MAX_CHAR_PERLINE)+") per line exceeded\n")
                 contain_errors = True
             for word in arnotok_end_words:
                 tmp_line = line.encode("unicode_escape")
                 tmp_word = word.strip('\r').strip('\n').replace(u'\ufeff', '').encode("unicode_escape")
                 try:
                     if tmp_line[tmp_line.index(tmp_word):].strip() == tmp_word:
-                        print(tmp_line[tmp_line.index(tmp_word):].strip())
-                        print("Subtitle number "+item)
-                        print("error > " + line)
-                        print("End with:\""+word+"\"\n")
+                        print_error("Subtitle number "+item)
+                        print_error("error > " + line)
+                        print_error("End with:\""+word+"\"\n")
                         contain_errors = True
                 except:
                     pass
             try:
                 if line[line.index('...')+3:line.index('...')+4] == ' ':
-                    print("Subtitle number "+item)
-                    print("error > " + line)
-                    print("Space after ...\n")
+                    print_error("Subtitle number "+item)
+                    print_error("error > " + line)
+                    print_error("Space after ...\n")
                     contain_errors = True
             except:
                 pass
         if len(elements[item]['lines']) > 2:
-            print("Subtitle number "+item)
-            print("Number of rows > 2\n")
+            print_error("Subtitle number "+item)
+            print_error("Number of rows > 2\n")
             contain_errors = True
         elif len(elements[item]['lines']) == 2:
             if end_with(elements[item]['lines'][1], u'،'):
-                print("Subtitle number "+item)
-                print("error > " + elements[item]['lines'][1])
-                print("Second line ends with coma\n")
+                print_error("Subtitle number "+item)
+                print_error("error > " + elements[item]['lines'][1])
+                print_error("Second line ends with coma\n")
                 contain_errors = True
             if not start_with(elements[item]['lines'][0], u'-') \
                     and not start_with(elements[item]['lines'][1], u'-') \
                     and len(elements[item]['lines'][0]+elements[item]['lines'][1]) < MAX_CHAR_PERLINE:
-                print("Subtitle number "+item)
-                print("Lines don't start with - and both less than MAX chars "
-                      "("+str(MAX_CHAR_PERLINE)+")\n")
+                print_error("Subtitle number "+item)
+                print_error("Lines don't start with - and both less than MAX chars "
+                            "("+str(MAX_CHAR_PERLINE)+")\n")
+                contain_errors = True
 
     if not contain_errors:
-        print "All is Good!"
+        print("All is Good!")
