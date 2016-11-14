@@ -181,9 +181,9 @@ if __name__ == '__main__':
                 contain_errors = True
             for word in arnotok_end_words:
                 tmp_line = line.encode("unicode_escape")
-                tmp_word = word.strip('\r').strip('\n').replace(u'\ufeff', '').encode("unicode_escape")
+                tmp_word = ' '+word.strip('\r').strip('\n').replace(u'\ufeff', '').encode("unicode_escape")
                 try:
-                    if tmp_line[tmp_line.index(tmp_word):].strip() == tmp_word:
+                    if tmp_line[tmp_line.index(tmp_word):].strip() == tmp_word.strip():
                         print_error("Subtitle number "+item)
                         print_error("error > " + line)
                         print_error("End with:\""+word+"\"\n")
